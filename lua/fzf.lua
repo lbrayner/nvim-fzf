@@ -194,7 +194,7 @@ function FZFObject:run()
     vim.fn.system({"mkfifo", self.fifotmpname})
   end
 
- 
+
   local termopen_first_arg
 
   if is_windows then
@@ -290,7 +290,7 @@ function FZF.raw_fzf(contents, fzf_cli_args, user_options)
   local fzf_obj = FZFObject:new(contents, fzf_cli_args, user_options, function(ret, exit_code)
     coroutine.resume(co, ret, exit_code)
   end)
-  
+
   fzf_obj:run()
   return coroutine.yield()
 end
