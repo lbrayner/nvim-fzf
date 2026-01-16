@@ -1,6 +1,8 @@
 local uv = vim.loop
 local float = require('fzf.floating_window')
 local WriteQueue = require("fzf.utils").WriteQueue
+local nvim_get_current_buf = vim.api.nvim_get_current_buf
+local nvim_get_mode = vim.api.nvim_get_mode
 
 local FZF = {}
 
@@ -221,16 +223,22 @@ function FZFObject:run()
     }
   end
 
+  local bufnr = nvim_get_current_buf()
+
   vim.fn.termopen(termopen_first_arg, {
     cwd = self.cwd,
     env = env,
     on_exit = function(_, exit_code, _)
       self:cleanup({exit_code = exit_code})
-    end
+    end,
+    on_stdout = function()
+      if bufnr == nvim_get_current_buf() and nvim_get_mode().mode ~= "t" then
+        vim.cmd[[startinsert]]
+      end
+    end,
   })
 
   vim.cmd[[set ft=fzf]]
-  vim.cmd[[startinsert]]
 
   if not self.contents or type(self.contents) == "string" then
     return
@@ -299,7 +307,7 @@ end
 function FZF.provided_win_fzf(contents, fzf_cli_args, options)
   local win = vim.api.nvim_get_current_win()
   local output, exit_code = FZF.raw_fzf(contents, fzf_cli_args, options)
-  local buf = vim.api.nvim_get_current_buf()
+  local buf = nvim_get_current_buf()
   vim.api.nvim_win_close(win, true)
   vim.api.nvim_buf_delete(buf, { force = true })
   return output, exit_code
